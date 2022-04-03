@@ -10,9 +10,8 @@ type Sync struct {
 }
 
 func (m *Memory) Synchronous(message string, res *string) error {
-	*res = "Sent"
-
 	source := Sync{}
+	
 	source.wg.Add(1)
 
 	data := Data{

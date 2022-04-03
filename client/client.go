@@ -37,6 +37,8 @@ func main() {
 	var relpy string
 	err = client.Call("Memory.Subscribe", string(port), &relpy)
 
+	println(relpy)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,10 +59,12 @@ func (r *Receiver) Get(message string, reply *string) error {
 	return nil
 }
 
+
+// start client itself
 func start(wg *sync.WaitGroup, port string) {
 	defer wg.Done()
 
-	fmt.Println("Starting Client...")
+	fmt.Println("Starting Client on port: "+port+" ...")
 	addy, err := net.ResolveTCPAddr("tcp", "0.0.0.0:"+string(port))
 
 	if err != nil {

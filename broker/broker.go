@@ -8,12 +8,9 @@ import (
 
 type Memory int
 
-var BUFF_COUNT int
+var BUFF_COUNT = 5
+var CLIENT_NUM = 1
 var broker Broker
-
-type Client struct {
-	Port string
-}
 
 type Source interface {
 	Send()
@@ -25,49 +22,41 @@ type Data struct {
 }
 
 type Broker struct {
-	clients  []Client
+	clients  []string
 	messages chan Data
 	wg       sync.WaitGroup
 }
 
 func (m *Memory) Subscribe(client string, res *string) error {
-	c := new(Client)
-	c.Port = client
-	broker.clients = append(broker.clients, *c)
+	defer broker.wg.Done()
+	broker.clients = append(broker.clients, client)
 	*res = "client subscribed"
-	broker.wg.Done()
 	return nil
 }
 
 func init() {
 	broker.wg.Wait()
-	start(&broker)
-}
-
-func start(b *Broker) {
-	BUFF_COUNT = 5
 	broker = Broker{
-		clients:  []Client{},
+		clients:  []string{},
 		messages: make(chan Data, BUFF_COUNT),
 	}
 
-	broker.wg.Add(1)
+	broker.wg.Add(CLIENT_NUM)
 	go push(&broker.wg)
 }
+
 
 func push(wg *sync.WaitGroup) {
 	wg.Wait()
 	for data := range broker.messages {
-		println("message " + data.Message)
 		for _, client := range broker.clients {
-			c, err := rpc.Dial("tcp", "0.0.0.0:"+client.Port)
-			println("client is sent " + client.Port)
+			c, err := rpc.Dial("tcp", "0.0.0.0:"+client)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			var relpy string
-			err = c.Call("Receiver.Get", "Message recieved", &relpy)
+			err = c.Call("Receiver.Get", data.Message, &relpy)
 
 			if err != nil {
 				log.Fatal(err)

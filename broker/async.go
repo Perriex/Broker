@@ -16,8 +16,6 @@ type Delivery struct {
 }
 
 func (m *Memory) Asynchronous(del Delivery, res *string) error {
-	*res = "Sent"
-	println("message recieved")
 	source := ASync{source: del.Port}
 	data := Data{
 		Message: del.Message,
@@ -29,20 +27,19 @@ func (m *Memory) Asynchronous(del Delivery, res *string) error {
 	} else {
 		broker.messages <- data
 	}
-	println("len recieved")
 
 	return nil
 }
 
 func (_type ASync) Send() {
-	client, err := rpc.Dial("tcp", _type.source)
+	server, err := rpc.Dial("tcp", _type.source)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var relpy string
-	err = client.Call("Receiver.Get", "Message received", &relpy)
+	err = server.Call("Receiver.Get", "200: success", &relpy)
 
 	if err != nil {
 		log.Fatal(err)
