@@ -1,50 +1,66 @@
 package main
-import (
-   "log"
-   "net"
-   "net/rpc"
-   "fmt"
-)
 
-type Reply struct {
-   Data string
-}
+import (
+	"fmt"
+	"log"
+	"net"
+	"net/rpc"
+)
 
 type Receiver int
 
-func (r *Receiver) Send(data []byte, reply *Reply) error {
+var BROKER_PORT = "8080"
 
-   rv := string(data)
-   fmt.Printf("%v\n", rv)
-   *reply = Reply{rv}
-   return nil
+type Delivery struct {
+	port    string
+	message string
+}
 
+func (client *Receiver) Get(message string, reply *string) error {
+	fmt.Println("Message: " + message)
+
+	return nil
 }
 
 func main() {
+   go start()
 
-   // start server
-   addy, err := net.ResolveTCPAddr("tcp", "0.0.0.0:12345")
-   if err != nil {
-     log.Fatal(err)
-   }
+	client, err := rpc.Dial("tcp", "0.0.0.0:8081")
 
-   // listen 
-   inbound, err := net.ListenTCP("tcp", addy)
-   if err != nil {
-     log.Fatal(err)
-   }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-   // publish receiver
-   receiver := new(Receiver)
-   rpc.Register(receiver)
-   rpc.Accept(inbound)
+	del := Delivery{
+		port:    "0.0.0.0:" + BROKER_PORT,
+		message: "Hello, world!",
+	}
+	var relpy string
 
-   memory, err = rpc.Dial("tcp","0.0.0.0:8080")
+	err = client.Call("Memory.Asynchronous", del, &relpy)
 
-   if err != nil {
-      log.Fatal(err)
-   }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-   // send data to broker
+	for {
+
+	}
+}
+
+func start() {
+	addy, err := net.ResolveTCPAddr("tcp", "0.0.0.0:8081")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	inbound, err := net.ListenTCP("tcp", addy)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	receiver := new(Receiver)
+	rpc.Register(receiver)
+	rpc.Accept(inbound)
+
 }

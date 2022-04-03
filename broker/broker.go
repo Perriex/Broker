@@ -5,11 +5,33 @@ import (
 	"net/rpc"
 )
 
-var CLIENT_COUNT int
+type Memory int
+
+var BUFF_COUNT int
 var broker Broker
 
 type Client struct {
 	port string
+}
+type Source interface {
+	Send()
+}
+type Data struct {
+	message string
+	_type   Source
+}
+
+type Reply struct {
+	message string
+}
+
+
+func (m *Memory) Subscribe(client string, res *string) error {
+	c := new(Client)
+	c.port = client
+	broker.clients = append(broker.clients, *c)
+	*res = "client subscribed"
+	return nil
 }
 
 type Broker struct {
@@ -17,38 +39,29 @@ type Broker struct {
 	messages chan Data
 }
 
-type Data struct {
-	message string
-	_type  Source
-}
-
-type Source interface {
-	Send()
-}
-
 func start(b *Broker) {
+	BUFF_COUNT = 5
 	broker = Broker{
-		[]Client{},
-		make(chan Data, 5),
+		clients:  []Client{},
+		messages: make(chan Data, BUFF_COUNT),
 	}
-	CLIENT_COUNT = 3
 
-	for client := 0; client < CLIENT_COUNT; client++ {
 		go push()
-	}
+	
 }
 
 func push() {
 	for data := range broker.messages {
 		for _, client := range broker.clients {
-			hook, err := rpc.Dial("tcp", client.port)
+			c, err := rpc.Dial("tcp", "localhost:"+client.port)
+
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			var relpy string
 			message := data.message
-			err = hook.Call("Client.Get", message, &relpy)
+			err = c.Call("Client.Get", message, &relpy)
 
 			if err != nil {
 				log.Fatal(err)
@@ -56,45 +69,4 @@ func push() {
 		}
 		data._type.Send()
 	}
-}
-
-type Memory int
-
-func (m *Memory) Subscribe(client string, res *string) error {
-	hook := Client{client}
-	broker.clients = append(broker.clients, hook)
-	*res = "added"
-	return nil
-}
-
-func (m *Memory) Synchronous(message string, res*string) error{
-	source := CallSync()
-	data := Data{
-		message,
-		source,
-	}
-	broker.messages <- data
-	source.Patient()
-
-	*res = "sent"
-
-	return nil
-}
-
-type Delivery struct{
-	port string
-	message string
-}
-
-func (m *Memory) Asynchronous(del Delivery, res*string) error{
-	source := CallAsync(del.port)
-	data := Data{
-		del.message,
-		source,
-	}
-	broker.messages <- data
-
-	*res = "sent"
-
-	return nil
 }

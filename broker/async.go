@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"fmt"
 	"log"
 	"net/rpc"
 )
@@ -9,20 +10,38 @@ type ASync struct {
 	source string
 }
 
-func CallAsync(src string) *ASync {
-	_type := ASync{source: src}
-	return &_type
+type Delivery struct {
+	port    string
+	message string
 }
 
-func (_type ASync) Send(){
-	client, err := rpc.Dial("tcp", _type.source)
+func (m *Memory) Asynchronous(del Delivery, res *string) error {
+	*res = "Sent"
+
+	source := ASync{source: del.port}
+	data := Data{
+		message: del.message,
+		_type:   &source,
+	}
+	if len(broker.messages) == BUFF_COUNT {
+		fmt.Println("Message overflow: ", del.message)
+
+	} else {
+		broker.messages <- data
+	}
+
+	return nil
+}
+
+func (_type ASync) Send() {
+	client, err := rpc.Dial("tcp", "localhost:"+_type.source)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var relpy string
-	err = client.Call("Client.Get", "Message received", &relpy)
+	err = client.Call("Client.Receiver", "Message received", &relpy)
 
 	if err != nil {
 		log.Fatal(err)

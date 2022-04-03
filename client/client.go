@@ -1,29 +1,18 @@
 package main
 
 import (
-	"broker/broker"
 	"bufio"
 	"fmt"
 	"log"
 	"net"
 	"net/rpc"
 	"os"
-	"sync"
 )
 
-type Reply struct {
-	message string
-}
-
-type Client int
-
-func (client *Client) Get(message string, reply *Reply) error {
-	fmt.Println("Message: " + message)
-
-	return nil
-}
+var BROKER_PORT = "8080"
 
 func main() {
+	fmt.Println("Enter requested port: ")
 	in := bufio.NewReader(os.Stdin)
 
 	port, _, err := in.ReadLine()
@@ -31,45 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//client, err := rpc.Dial("tcp", "localhost:"+string(port))
-
-	client, err := rpc.Dial("tcp", "localhost:8080")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	wg := new(sync.WaitGroup)
-
-	wg.Add(1)
-
-	go get(wg, string(port))
-
-	var relpy string
-
-	err = client.Call("Memory.Subscribe", port, &relpy)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	del := broker.Delivery{
-		port:    string(port),
-		message: "Hello, world!",
-	}
-	err = client.Call("Memory.Asynchronous", del, &relpy)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	wg.Wait()
-}
-
-func get(wg *sync.WaitGroup, port string) {
-	defer wg.Done()
-
-	addy, err := net.ResolveTCPAddr("tcp", "localhost:"+port)
+	addy, err := net.ResolveTCPAddr("tcp", "localhost:"+string(port))
 
 	if err != nil {
 		log.Fatal(err)
@@ -79,7 +30,20 @@ func get(wg *sync.WaitGroup, port string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	client := new(Client)
-	rpc.Register(client)
+
 	rpc.Accept(inbound)
+
+
+	client, err := rpc.Dial("tcp", "localhost:"+BROKER_PORT)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var relpy string
+	err = client.Call("Memory.Subscribe", port, &relpy)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
