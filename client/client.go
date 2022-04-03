@@ -28,14 +28,14 @@ func main() {
 	go start(wg, string(port))
 
 	fmt.Println("Receiver from Broker ...")
-	client, err := rpc.Dial("tcp", "localhost:"+BROKER_PORT)
+	client, err := rpc.Dial("tcp", "0.0.0.0:"+BROKER_PORT)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var relpy string
-	err = client.Call("Memory.Subscribe", port, &relpy)
+	err = client.Call("Memory.Subscribe", string(port), &relpy)
 
 	if err != nil {
 		log.Fatal(err)
@@ -44,11 +44,24 @@ func main() {
 	wg.Wait()
 }
 
-func start(wg *sync.WaitGroup,port string) {
+type Receiver int
+
+type Delivery struct {
+	Port    string
+	Message string
+}
+
+func (r *Receiver) Get(message string, reply *string) error {
+	fmt.Println("Message: " + message)
+
+	return nil
+}
+
+func start(wg *sync.WaitGroup, port string) {
 	defer wg.Done()
 
 	fmt.Println("Starting Client...")
-	addy, err := net.ResolveTCPAddr("tcp", "localhost:"+string(port))
+	addy, err := net.ResolveTCPAddr("tcp", "0.0.0.0:"+string(port))
 
 	if err != nil {
 		log.Fatal(err)
@@ -59,5 +72,7 @@ func start(wg *sync.WaitGroup,port string) {
 		log.Fatal(err)
 	}
 
+	service := new(Receiver)
+	rpc.Register(service)
 	rpc.Accept(inbound)
 }

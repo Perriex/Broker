@@ -36,24 +36,26 @@ func (m *Memory) Subscribe(client string, res *string) error {
 	return nil
 }
 
+func init() {
+	start(&broker)
+}
+
 func start(b *Broker) {
 	BUFF_COUNT = 5
 	broker = Broker{
 		clients:  []Client{},
 		messages: make(chan Data, BUFF_COUNT),
 	}
-	
-	if len(broker.messages) > 0 {
-		go push()
-	}
 
+	go push()
 }
 
 func push() {
 	for data := range broker.messages {
+		println("message " + data.Message)
 		for _, client := range broker.clients {
-			c, err := rpc.Dial("tcp", "localhost:"+client.Port)
-
+			c, err := rpc.Dial("tcp", "0.0.0.0:"+client.Port)
+			println("client is sent " + client.Port)
 			if err != nil {
 				log.Fatal(err)
 			}

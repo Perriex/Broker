@@ -17,11 +17,11 @@ type Delivery struct {
 
 func (m *Memory) Asynchronous(del Delivery, res *string) error {
 	*res = "Sent"
-
+	println("message recieved")
 	source := ASync{source: del.Port}
 	data := Data{
 		Message: del.Message,
-		Type:   &source,
+		Type:    &source,
 	}
 	if len(broker.messages) == BUFF_COUNT {
 		fmt.Println("Message overflow: ", del.Message)
@@ -29,19 +29,20 @@ func (m *Memory) Asynchronous(del Delivery, res *string) error {
 	} else {
 		broker.messages <- data
 	}
+	println("len recieved")
 
 	return nil
 }
 
 func (_type ASync) Send() {
-	client, err := rpc.Dial("tcp", "localhost:"+_type.source)
+	client, err := rpc.Dial("tcp", _type.source)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var relpy string
-	err = client.Call("Client.Receiver", "Message received", &relpy)
+	err = client.Call("Receiver.Get", "Message received", &relpy)
 
 	if err != nil {
 		log.Fatal(err)

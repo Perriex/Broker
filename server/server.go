@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"time"
 )
 
 type Receiver int
@@ -25,16 +26,15 @@ func (r *Receiver) Get(message string, reply *string) error {
 func main() {
 	go start()
 
-	client, err := rpc.Dial("tcp", "0.0.0.0:8081")
+	client, err := rpc.Dial("tcp", "0.0.0.0:8080")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-
 	fmt.Println("Connect to Broker ...")
 	del := Delivery{
-		Port:    "0.0.0.0:" + BROKER_PORT,
+		Port:    "0.0.0.0:8081",
 		Message: "Hello, world!",
 	}
 	var relpy string
@@ -46,7 +46,7 @@ func main() {
 	}
 
 	for {
-
+		time.Sleep(1000)
 	}
 }
 
