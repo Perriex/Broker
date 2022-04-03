@@ -16,8 +16,8 @@ func (m *Memory) Synchronous(message string, res *string) error {
 	source.wg.Add(1)
 
 	data := Data{
-		message: message,
-		_type:   &source,
+		Message: message,
+		Type:   &source,
 	}
 
 	if len(broker.messages) == BUFF_COUNT {

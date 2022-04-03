@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/rpc"
 	"os"
+	"sync"
 )
 
 var BROKER_PORT = "8080"
@@ -20,20 +21,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	addy, err := net.ResolveTCPAddr("tcp", "localhost:"+string(port))
+	wg := new(sync.WaitGroup)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	wg.Add(1)
 
-	inbound, err := net.ListenTCP("tcp", addy)
-	if err != nil {
-		log.Fatal(err)
-	}
+	go start(wg, string(port))
 
-	rpc.Accept(inbound)
-
-
+	fmt.Println("Receiver from Broker ...")
 	client, err := rpc.Dial("tcp", "localhost:"+BROKER_PORT)
 
 	if err != nil {
@@ -46,4 +40,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	wg.Wait()
+}
+
+func start(wg *sync.WaitGroup,port string) {
+	defer wg.Done()
+
+	fmt.Println("Starting Client...")
+	addy, err := net.ResolveTCPAddr("tcp", "localhost:"+string(port))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	inbound, err := net.ListenTCP("tcp", addy)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rpc.Accept(inbound)
 }

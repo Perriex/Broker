@@ -20,8 +20,8 @@ func (m *Memory) Asynchronous(del Delivery, res *string) error {
 
 	source := ASync{source: del.port}
 	data := Data{
-		message: del.message,
-		_type:   &source,
+		Message: del.message,
+		Type:   &source,
 	}
 	if len(broker.messages) == BUFF_COUNT {
 		fmt.Println("Message overflow: ", del.message)

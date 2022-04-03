@@ -12,8 +12,8 @@ type Receiver int
 var BROKER_PORT = "8080"
 
 type Delivery struct {
-	port    string
-	message string
+	Port    string
+	Message string
 }
 
 func (client *Receiver) Get(message string, reply *string) error {
@@ -23,7 +23,7 @@ func (client *Receiver) Get(message string, reply *string) error {
 }
 
 func main() {
-   go start()
+	go start()
 
 	client, err := rpc.Dial("tcp", "0.0.0.0:8081")
 
@@ -31,9 +31,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+   
+	fmt.Println("Connect to Broker ...")
 	del := Delivery{
-		port:    "0.0.0.0:" + BROKER_PORT,
-		message: "Hello, world!",
+		Port:    "0.0.0.0:" + BROKER_PORT,
+		Message: "Hello, world!",
 	}
 	var relpy string
 
@@ -49,6 +51,7 @@ func main() {
 }
 
 func start() {
+	fmt.Println("Starting Server ...")
 	addy, err := net.ResolveTCPAddr("tcp", "0.0.0.0:8081")
 	if err != nil {
 		log.Fatal(err)
