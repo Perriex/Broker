@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-   
+
 	fmt.Println("Connect to Broker ...")
 	del := Delivery{
 		Port:    "0.0.0.0:" + BROKER_PORT,

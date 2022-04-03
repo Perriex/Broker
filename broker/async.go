@@ -11,20 +11,20 @@ type ASync struct {
 }
 
 type Delivery struct {
-	port    string
-	message string
+	Port    string
+	Message string
 }
 
 func (m *Memory) Asynchronous(del Delivery, res *string) error {
 	*res = "Sent"
 
-	source := ASync{source: del.port}
+	source := ASync{source: del.Port}
 	data := Data{
-		Message: del.message,
+		Message: del.Message,
 		Type:   &source,
 	}
 	if len(broker.messages) == BUFF_COUNT {
-		fmt.Println("Message overflow: ", del.message)
+		fmt.Println("Message overflow: ", del.Message)
 
 	} else {
 		broker.messages <- data
