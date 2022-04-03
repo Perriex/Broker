@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-type Sync struct{
+type Sync struct {
 	wg sync.WaitGroup
 }
 
@@ -17,7 +17,7 @@ func (m *Memory) Synchronous(message string, res *string) error {
 
 	data := Data{
 		Message: message,
-		Type:   &source,
+		Type:    &source,
 	}
 
 	if len(broker.messages) == BUFF_COUNT {
@@ -31,7 +31,6 @@ func (m *Memory) Synchronous(message string, res *string) error {
 	return nil
 }
 
-
-func (_type *Sync) Send(){
+func (_type *Sync) Send() {
 	_type.wg.Done()
 }

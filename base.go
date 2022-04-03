@@ -11,7 +11,7 @@ import (
 var BROKER_PORT = "8080"
 
 func main() {
-	fmt.Println("Welcome abroad! starting in port "+BROKER_PORT)
+	fmt.Println("Welcome abroad! starting in port " + BROKER_PORT)
 
 	addy, err := net.ResolveTCPAddr("tcp", "0.0.0.0:"+BROKER_PORT)
 

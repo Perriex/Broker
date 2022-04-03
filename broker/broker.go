@@ -3,6 +3,7 @@ package broker
 import (
 	"log"
 	"net/rpc"
+	"sync"
 )
 
 type Memory int
@@ -26,6 +27,7 @@ type Data struct {
 type Broker struct {
 	clients  []Client
 	messages chan Data
+	wg       sync.WaitGroup
 }
 
 func (m *Memory) Subscribe(client string, res *string) error {
@@ -33,10 +35,12 @@ func (m *Memory) Subscribe(client string, res *string) error {
 	c.Port = client
 	broker.clients = append(broker.clients, *c)
 	*res = "client subscribed"
+	broker.wg.Done()
 	return nil
 }
 
 func init() {
+	broker.wg.Wait()
 	start(&broker)
 }
 
@@ -47,10 +51,12 @@ func start(b *Broker) {
 		messages: make(chan Data, BUFF_COUNT),
 	}
 
-	go push()
+	broker.wg.Add(1)
+	go push(&broker.wg)
 }
 
-func push() {
+func push(wg *sync.WaitGroup) {
+	wg.Wait()
 	for data := range broker.messages {
 		println("message " + data.Message)
 		for _, client := range broker.clients {
