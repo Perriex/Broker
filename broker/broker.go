@@ -59,7 +59,7 @@ func push() {
 			}
 
 			var relpy string
-			message := data.Message
+			message := "Message recieved"
 			err = c.Call("Client.Get", message, &relpy)
 
 			if err != nil {
