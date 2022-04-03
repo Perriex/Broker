@@ -16,7 +16,7 @@ type Delivery struct {
 	Message string
 }
 
-func (client *Receiver) Get(message string, reply *string) error {
+func (r *Receiver) Get(message string, reply *string) error {
 	fmt.Println("Message: " + message)
 
 	return nil
